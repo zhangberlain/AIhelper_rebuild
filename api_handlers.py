@@ -9,7 +9,7 @@ class BaseAPIHandler:
         self.client = None
         self.system_message = "You are a helpful assistant."
         self.BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        self.MODEL_NAME = "qwen-max"
+        #self.MODEL_NAME = "qwen-max"
 
     def _create_client(self, api_key):
         return OpenAI(
@@ -30,10 +30,10 @@ class BaseAPIHandler:
             log.write(f"时间{now}\n结束原因:{content[1]}\n问题:{content[2]}\n回答:{content[0]}\n总token:{content[3]}") 
 
 class APIWithoutHistory(BaseAPIHandler):
-    def send_request(self, content, api_key):
+    def send_request(self, content, api_key, modal_name):
         client = self._create_client(api_key)
         completion = client.chat.completions.create(
-            model=self.MODEL_NAME,
+            model=modal_name,
             messages=[
                 {"role": "system", "content": self.system_message},
                 {"role": "user", "content": content}
@@ -54,7 +54,7 @@ class APIWithHistory(BaseAPIHandler):
         super().__init__()
         self.history = []
 
-    def send_request(self, content, api_key):
+    def send_request(self, content, api_key, modal_name):
         client = self._create_client(api_key)
         
         if not self.history:
@@ -63,7 +63,7 @@ class APIWithHistory(BaseAPIHandler):
         self.history.append({"role": "user", "content": content})
         
         completion = client.chat.completions.create(
-            model=self.MODEL_NAME,
+            model=modal_name,
             messages=self.history
         )
         

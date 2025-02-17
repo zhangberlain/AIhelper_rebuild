@@ -18,6 +18,7 @@ class Application:
 
         self.api_key_var = tk.StringVar()
         self.history_mode = tk.IntVar(value=0)
+        self.modal_name = tk.StringVar(value="qwen-max")
         self.input_text = ""
         self.api_hander = None
 
@@ -45,22 +46,44 @@ class Application:
         tk.Entry(key_frame, bg="gray", textvariable=self.api_key_var, show="*").pack(side=tk.RIGHT)
         key_frame.pack()
 
-        # 上下文选择
-        #mode_frame = tk.Frame(self.root)
-        #tk.Radiobutton(mode_frame, text="需要上下文", variable=self.history_mode, value=1).pack(side=tk.LEFT)
-        #tk.Radiobutton(mode_frame, text="不需要上下文", variable=self.history_mode, value=0).pack(side=tk.RIGHT)
-        #mode_frame.pack()
+        #把各类选择放在一起
+        chose_frame = tk.Frame(self.root)
+        model_choose = ttk.Combobox(
+            chose_frame,
+            values=['qwen-max',
+                    'qwen-plus',
+                    'qwen-turbo',
+                    'qwen-math-plus',
+                    'qwen-math-turbo',
+                    'qwen-coder-plus',
+                    'qwen-coder-turbo',
+                    'qwen2.5-72b-instruct',
+                    'qwen2.5-1.5b-instruct',
+                    'deepseek-r1', 'deepseek-v3',
+                    'deepseek-r1-distill-qwen-32b',
+                    'deepseek-r1-distill-llama-8b',
+                    'deepseek-r1-distill-llama-70b'],
+            state= "readonly"
+        )
+        model_choose.current(0)
+        model_choose.pack(padx=20, pady=10, side='left')
+
+        def model_select(event):
+            """绑定选择模型事件"""
+            self.modal_name .set(model_choose.get())
+        model_choose.bind("<<ComboboxSelected>>", model_select)
 
         combo_text = ttk.Combobox(
-            self.root,
+            chose_frame,
             values=["开启上下文","不开启上下文"],
             state="readonly"  # 设置为只读模式
             )
-        combo_text.pack(padx=20, pady=10)
+        combo_text.pack(padx=20, pady=10, side='right')
         combo_text.current(0)
+        chose_frame.pack()
 
-        # 绑定选择事件
         def text_select(event):
+            """绑定选择上下文事件"""
             if combo_text.get() == "开启上下文":
                 self.history_mode.set(1)
             else:
@@ -100,7 +123,9 @@ class Application:
         try:
             response = self.api_handler.send_request(
                 self.input_text,
-                self.api_key_var.get()
+                self.api_key_var.get(),
+                self.modal_name.get()
+                
             )
             self.root.after(0, self.update_display, "AI", response)
         except Exception as e:
