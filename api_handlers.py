@@ -82,5 +82,30 @@ class APIWithHistory(BaseAPIHandler):
     def clear_history(self):
         self.history = []
 
+
+class APIImageWithoutHistory(BaseAPIHandler):
+    def send_request(self, content, api_key, modal_name,image):
+        client = self._create_client(api_key)
+        completion = client.chat.completions.create(
+            model=modal_name,
+            messages=[
+                {"role": "system", "content": self.system_message},
+                {"role": "user", "content": [
+                    {"type": "image_url","image_url": image},
+                    {"type": "text", "text": content}
+                    ]
+                }
+            ]
+        )
+
+        self._logStart((
+            completion.choices[0].message.content,
+            completion.choices[0].finish_reason,
+            f"图片输入+{content}",
+            completion.usage.total_tokens
+            ))
+
+        return completion.choices[0].message.content
+
 if __name__ == "__main__":
     pass

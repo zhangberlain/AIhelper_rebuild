@@ -2,10 +2,9 @@
 
 import tkinter as tk
 from tkinter import ttk , messagebox
-from PIL import Image ,ImageTk
 import threading
-from image_input import ImageLoader
-from api_handlers import APIWithoutHistory, APIWithHistory
+from api_handlers import APIWithoutHistory, APIWithHistory, APIImageWithoutHistory
+from image import ImageLoadAndSend
 
 
 
@@ -21,6 +20,7 @@ class Application:
         self.modal_name = tk.StringVar(value="qwen-max")
         self.input_text = ""
         self.api_hander = None
+        self.image1 = tk.StringVar(value=r'.\photos\1012.png')
 
         self.create_widgets()
         self.setup_api_hander()
@@ -29,7 +29,7 @@ class Application:
         # 输入框和发送按钮
         entry_frame = tk.Frame(self.root)
         self.entry = tk.Entry(entry_frame, bg="white", bd=4)
-        self.entry.bind("<Return>", lambda e: self.send_message())
+        self.entry.bind("<Return>", lambda e: self.send_message())#支持回车发送
         self.entry.pack(side=tk.LEFT, pady=3)
 
         tk.Button(
@@ -43,12 +43,12 @@ class Application:
         # API密钥输入
         key_frame = tk.Frame(self.root)
         tk.Label(key_frame, text="请将'钥匙'/api_key粘贴进灰色框").pack(side=tk.LEFT)
-        tk.Entry(key_frame, bg="gray", textvariable=self.api_key_var, show="*").pack(side=tk.RIGHT)
+        tk.Entry(key_frame, bg="gray", textvariable=self.api_key_var, show="*").pack(side=tk.RIGHT)#保密黑色星号
         key_frame.pack()
 
         #把各类选择放在一起
         chose_frame = tk.Frame(self.root)
-        model_choose = ttk.Combobox(
+        model_choose = ttk.Combobox(   #列表要求与云服务提供商给ai的命名一致
             chose_frame,
             values=['qwen-max',
                     'qwen-plus',
@@ -59,11 +59,16 @@ class Application:
                     'qwen-coder-turbo',
                     'qwen2.5-72b-instruct',
                     'qwen2.5-1.5b-instruct',
-                    'deepseek-r1', 'deepseek-v3',
+                    'qvq-72b-preview',
+                    'qwen-vl-max',
+                    'qwen-vl-plus',
+                    'qwen2-vl-2b-instruct',
+                    'deepseek-r1', 
+                    'deepseek-v3',
                     'deepseek-r1-distill-qwen-32b',
                     'deepseek-r1-distill-llama-8b',
                     'deepseek-r1-distill-llama-70b'],
-            state= "readonly"
+            state= "readonly"# 设置为只读模式
         )
         model_choose.current(0)
         model_choose.pack(padx=20, pady=10, side='left')
@@ -75,7 +80,7 @@ class Application:
 
         combo_text = ttk.Combobox(
             chose_frame,
-            values=["开启上下文","不开启上下文"],
+            values=["开启上下文","不开启上下文","我要传图片!(仅限vl和qvq模型)"],
             state="readonly"  # 设置为只读模式
             )
         combo_text.pack(padx=20, pady=10, side='right')
@@ -86,8 +91,10 @@ class Application:
             """绑定选择上下文事件"""
             if combo_text.get() == "开启上下文":
                 self.history_mode.set(1)
-            else:
+            elif combo_text.get() == "不开启上下文":
                 self.history_mode.set(0)
+            elif combo_text.get() == "我要传图片!(仅限vl和qvq模型)":
+                self.history_mode.set(2)
             self.setup_api_hander()
         combo_text.bind("<<ComboboxSelected>>", text_select)
 
@@ -107,6 +114,8 @@ class Application:
             self.api_handler = APIWithHistory()
         elif self.history_mode.get() == 0:
             self.api_handler = APIWithoutHistory()
+        elif self.history_mode.get() == 2:
+            self.api_handler = APIImageWithoutHistory()
 
     def send_message(self):
         """处理消息发送"""
@@ -121,24 +130,37 @@ class Application:
     def process_request(self):
         """处理API请求"""
         try:
-            response = self.api_handler.send_request(
-                self.input_text,
-                self.api_key_var.get(),
-                self.modal_name.get()
-                
-            )
-            self.root.after(0, self.update_display, "AI", response)
+            if self.history_mode.get() == 2:
+                x = ImageLoadAndSend(self.image1.get())
+                response = self.api_handler.send_request(
+                    self.input_text,
+                    self.api_key_var.get(),
+                    self.modal_name.get(),
+                    image = x.load()
+
+                )
+                self.root.after(0, self.update_display, "AI", response)
+            else:
+                response = self.api_handler.send_request(
+                    self.input_text,
+                    self.api_key_var.get(),
+                    self.modal_name.get()
+
+                )
+                self.root.after(0, self.update_display, "AI", response)
         except Exception as e:
-            self.root.after(0, self.show_error, str(e))
+        #    self.root.after(0, self.show_error, str(e))
+            print(e)
+            pass
 
     def update_display(self, role, content):
         """更新对话显示"""
         self.text_area.insert(tk.END, f"\n{role}: {content}\n")
         self.text_area.see(tk.END)
 
-    def show_error(self, error_msg):
-        """显示错误信息"""
-        messagebox.showerror("错误", f"请求失败: {error_msg}")
+    #def show_error(self, error_msg):
+    #    """显示错误信息"""
+    #    messagebox.showerror("错误", f"请求失败: {error_msg}")
 
     def run(self):
         self.root.mainloop()

@@ -1,3 +1,4 @@
+#image_change.py
 from PIL import Image
 
 class ImageLoader:
@@ -14,4 +15,4 @@ class ImageLoader:
             new_size = (int(width*ratio), int(height*ratio))
             image = image.resize(new_size, Image.Resampling.LANCZOS)
             
-        return (image, *new_size) if max_width or max_height else (width, height)
+        return image
