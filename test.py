@@ -71,8 +71,8 @@ PyQt5组件与Tkinter组件的行为差异等。
 import sys
 import threading
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                             QLabel, QLineEdit, QPushButton, QTextEdit, QComboBox,
-                             QMessageBox, QFileDialog)
+                            QLabel, QLineEdit, QPushButton, QTextEdit, QComboBox,
+                            QMessageBox, QFileDialog)
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from api_handlers import APIWithoutHistory, APIWithHistory, APIImageWithoutHistory
 from image import ImageLoadAndSend
@@ -126,10 +126,24 @@ class MainWindow(QMainWindow):
         model_layout = QHBoxLayout()
         model_layout.addWidget(QLabel("选择模型:"))
         self.model_combo = QComboBox()
-        self.model_combo.addItems([
-            'qwen-max', 'qwen-plus', 'qwen-turbo', 
-            'qwen-vl-max', 'qwen-vl-plus'  # 示例模型列表
-        ])
+        self.model_combo.addItems(['qwen-max',
+                    'qwen-plus',
+                    'qwen-turbo',
+                    'qwen-math-plus',
+                    'qwen-math-turbo',
+                    'qwen-coder-plus',
+                    'qwen-coder-turbo',
+                    'qwen2.5-72b-instruct',
+                    'qwen2.5-1.5b-instruct',
+                    'qvq-72b-preview',
+                    'qwen-vl-max',
+                    'qwen-vl-plus',
+                    'qwen2-vl-2b-instruct',
+                    'deepseek-r1', 
+                    'deepseek-v3',
+                    'deepseek-r1-distill-qwen-32b',
+                    'deepseek-r1-distill-llama-8b',
+                    'deepseek-r1-distill-llama-70b'])
         self.model_combo.currentTextChanged.connect(self.on_model_changed)
         model_layout.addWidget(self.model_combo)
         main_layout.addLayout(model_layout)
@@ -155,8 +169,8 @@ class MainWindow(QMainWindow):
 
         # 对话显示区域
         self.chat_area = QTextEdit()
-        self.chat_area.setReadOnly(True)
-        self.chat_area.append("欢迎使用AI助手！请输入您的问题...")
+        self.chat_area.setReadOnly(False)
+        self.chat_area.append("欢迎使用AI助手！请输入您的问题...(此处可编辑但不可发送)")
         main_layout.addWidget(self.chat_area)
 
         # 输入区域

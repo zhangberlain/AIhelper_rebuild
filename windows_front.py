@@ -149,7 +149,7 @@ class Application:
                 )
                 self.root.after(0, self.update_display, "AI", response)
         except Exception as e:
-        #    self.root.after(0, self.show_error, str(e))
+            self.root.after(0, self.show_error, str(e))
             print(e)
             pass
 
@@ -158,9 +158,9 @@ class Application:
         self.text_area.insert(tk.END, f"\n{role}: {content}\n")
         self.text_area.see(tk.END)
 
-    #def show_error(self, error_msg):
-    #    """显示错误信息"""
-    #    messagebox.showerror("错误", f"请求失败: {error_msg}")
+    def show_error(self, error_msg):
+        """显示错误信息"""
+        messagebox.showerror("错误", f"请求失败: {error_msg}")
 
     def run(self):
         self.root.mainloop()
